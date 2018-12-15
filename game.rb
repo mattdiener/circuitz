@@ -1,5 +1,6 @@
 #THIS GAME IS A HACK
 require 'gosu'
+require 'json'
 
 #Z coordinate
 $bgZ = 0
@@ -41,18 +42,18 @@ $show_rotations = false
 class GearsGame < Gosu::Window
   def initialize
     super 640, 480
-    caption = "Circuitz"
-    init_board(5,5,0)
-    init_tiles()
 
+    caption = "Circuitz"
     $default_font = Gosu::Font.new(self, Gosu::default_font_name, 12)
+
+    load_level("world1/level1")
   end
 
   def post_init
     end_animation()
   end
 
-  def init_board(width, height, tiles)
+  def init_board(width, height)
     $tileCountW = width
     $tileCountH = height
 
@@ -73,26 +74,23 @@ class GearsGame < Gosu::Window
     $tileScale = $tileSize / $tileSourceSize
   end
   
-  def init_tiles()
+  def init_tiles(tiles)
     @tiles = Array.new($tileCountW * $tileCountH)
     index = 0
     for y in 0..($tileCountH-1)
       for x in 0..($tileCountW-1)
-        if index == 4
-          @tiles[index] = SourceTile.new(x, y, 0, 0)
-        elsif index == 5
-          @tiles[index] = SinkTile.new(x, y, 0, 0)
-        else
-          if index%2 == 0
-            if index%4 == 0
-              @tiles[index] = DoubleCornerTile.new(x, y, 1, 0)
-            else
-              @tiles[index] = DoubleCornerTile.new(x, y, 0, 0)
-            end
-          else
-            @tiles[index] = OverUnderTile.new(x, y, 1, 0)
-          end
-        end
+        @tiles[index] = create_tile(x, y, tiles[index]["rotation"], tiles[index]["type"])
+        index += 1
+      end
+    end
+  end
+
+  def init_backboard(backboard)
+    @backboard = Array.new($tileCountW * $tileCountH)
+    index = 0
+    for y in 0..($tileCountH-1)
+      for x in 0..($tileCountW-1)
+        @backboard[index] = create_backboard_square(x, y, backboard[index])
         index += 1
       end
     end
@@ -202,6 +200,7 @@ class GearsGame < Gosu::Window
   def draw
     self.draw_bg()
     self.draw_tiles()
+    self.draw_backboard()
     self.draw_mouse_box()
   end
 
@@ -233,22 +232,6 @@ class GearsGame < Gosu::Window
 
   def draw_bg
     Gosu.draw_rect(0,0,self.width,self.height,$colorGrey, $bgZ)
-
-    # draw inner area
-    Gosu.draw_rect($innerX,$innerY,$innerWidth,$innerHeight,$colorBeige, $bgZ)
-
-    # LINES
-    lineColor = $colorCoffee
-
-    # draw vertical lines    
-    for lineX in 0..$tileCountW
-      Gosu.draw_rect( $innerX + (lineX*$tileSize) - 1, $innerY - 1, 3, $innerHeight + 3, lineColor, $gridZ )
-    end
-
-    # draw horizontal lines
-    for lineY in 0..$tileCountH
-      Gosu.draw_rect( $innerX - 1, $innerY + (lineY*$tileSize) - 1, $innerWidth + 3, 3, lineColor, $gridZ )
-    end
   end
 
   def draw_tiles
@@ -257,6 +240,16 @@ class GearsGame < Gosu::Window
     for x in 1..$tileCountW
       for y in 1..$tileCountH
         @tiles[index].draw(animationProgress)
+        index += 1
+      end
+    end
+  end
+
+  def draw_backboard
+    index = 0
+    for x in 1..$tileCountW
+      for y in 1..$tileCountH
+        @backboard[index].draw()
         index += 1
       end
     end
@@ -273,8 +266,52 @@ class GearsGame < Gosu::Window
       Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+2)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
   end
 
+  def create_tile(x, y, rotation, type)
+    case type
+    when "s"
+      return SourceTile.new(x,y,rotation)
+    when "k"
+      return SinkTile.new(x,y,rotation)
+    when "c"
+      return CornerTile.new(x,y,rotation)
+    when "l"
+      return StraightTile.new(x,y,rotation)
+    when "L"
+      return OverUnderTile.new(x,y,rotation)
+    when "C"
+      return DoubleCornerTile.new(x,y,rotation)
+    when "n"
+      return NoTile.new(x,y,rotation)
+    else
+      return NoTile.new(x,y,rotation)
+    end
+  end
+
+  def create_backboard_square(x, y, type)
+    case type
+    when "d"
+      return BackboardSquare.new(x,y)
+    when "s"
+      return StaticBackboardSquare.new(x,y)
+    when "n"
+      return NoBackboardSquare.new(x,y)
+    else
+      return NoBackboardSquare.new(x,y)
+    end
+  end
+
+  def load_level(name)
+    levelString = File.read(File.join("levels", name + ".json"))
+    level = JSON.parse(levelString)
+
+    init_board(level["width"], level["height"])
+    init_backboard(level["backboard"])
+    init_tiles(level["tiles"])
+
+  end
+
   class Tile
-    def initialize(x, y, rotation, type)
+    def initialize(x, y, rotation)
       @x = x
       @y = y
       
@@ -389,9 +426,15 @@ class GearsGame < Gosu::Window
     end
   end
 
+  class NoTile < Tile
+    def draw(animationStage)
+      #noop
+    end
+  end
+
   class SourceTile < Tile
-    def initialize(x, y, rotation, type)
-      super(x, y, rotation, type)
+    def initialize(x, y, rotation)
+      super(x, y, rotation)
 
       @isOn = false
       @offIndex = 0
@@ -428,8 +471,8 @@ class GearsGame < Gosu::Window
   end
 
   class CornerTile < Tile
-    def initialize(x, y, rotation, type)
-      super(x, y, rotation, type)
+    def initialize(x, y, rotation)
+      super(x, y, rotation)
 
       @isOn = false
       @offIndex = 4
@@ -496,8 +539,8 @@ class GearsGame < Gosu::Window
   end
 
   class StraightTile < Tile
-    def initialize(x, y, rotation, type)
-      super(x, y, rotation, type)
+    def initialize(x, y, rotation)
+      super(x, y, rotation)
 
       @isOn = false
       @offIndex = 6
@@ -550,8 +593,8 @@ class GearsGame < Gosu::Window
   end
 
   class OverUnderTile < Tile
-    def initialize(x, y, rotation, type)
-      super(x, y, rotation, type)
+    def initialize(x, y, rotation)
+      super(x, y, rotation)
 
       @isOnOver = false
       @isOnUnder = false
@@ -620,8 +663,8 @@ class GearsGame < Gosu::Window
   end
 
   class DoubleCornerTile < Tile
-    def initialize(x, y, rotation, type)
-      super(x, y, rotation, type)
+    def initialize(x, y, rotation)
+      super(x, y, rotation)
 
       @isOnA = false #down-right
       @isOnB = false #up-left
@@ -722,8 +765,8 @@ class GearsGame < Gosu::Window
   end
 
   class SinkTile < Tile
-    def initialize(x, y, rotation, type)
-      super(x, y, rotation, type)
+    def initialize(x, y, rotation)
+      super(x, y, rotation)
 
       @isOn = false
 
@@ -754,6 +797,60 @@ class GearsGame < Gosu::Window
       else
         @spriteIndex = @offIndex
       end
+    end
+  end
+
+  class BackboardSquare
+    def initialize(x, y)
+      @x = x
+      @y = y
+    end
+
+    def can_rotate?
+      return true
+    end
+
+    def color
+      return $colorBeige
+    end
+
+    def draw
+      Gosu.draw_rect($innerX + @x*$tileSize,$innerY + @y*$tileSize, $tileSize, $tileSize, color(), $bgZ)
+
+      # LINES
+      lineColor = $colorCoffee
+
+      # draw vertical lines
+      Gosu.draw_rect( $innerX + (@x*$tileSize) - 1, $innerY + (@y*$tileSize) - 1, 3, $tileSize + 3, lineColor, $gridZ )
+      Gosu.draw_rect( $innerX + ((@x+1)*$tileSize) - 1, $innerY + (@y*$tileSize) - 1, 3, $tileSize + 3, lineColor, $gridZ )
+
+      # draw horizontal lines
+      Gosu.draw_rect( $innerX + (@x*$tileSize) - 1, $innerY + (@y*$tileSize) - 1, $tileSize + 3, 3, lineColor, $gridZ )
+      Gosu.draw_rect( $innerX + (@x*$tileSize) - 1, $innerY + ((@y+1)*$tileSize) - 1, $tileSize + 3, 3, lineColor, $gridZ )
+    end
+  end
+
+  class StaticBackboardSquare < BackboardSquare
+    def initialize(x, y)
+      super(x, y)
+    end
+
+    def can_rotate?
+      return false
+    end
+
+    def color
+      return $colorBrown
+    end
+  end
+
+  class NoBackboardSquare < StaticBackboardSquare
+    def initialize(x, y)
+      super(x, y)
+    end
+
+    def draw
+      #noop
     end
   end
 end

@@ -21,6 +21,7 @@ $colorCoffee = Gosu::Color.new(0xff2E1C05)
 $colorTan = Gosu::Color.new(0xffA8896C)
 $colorWhite = Gosu::Color.new(0xffffffff)
 $colorBlack = Gosu::Color.new(0xff000000)
+$colorRed = Gosu::Color.new(0xffff0000)
 
 #TILES
 $tileSourceSize = 16
@@ -33,8 +34,9 @@ $animationTime = 16
 $animationTimer = 0
 
 #MOUSE
-$mouseBoxX = 0
-$mouseBoxY = 0
+$mouseBoxX = -1
+$mouseBoxY = -1
+$mouseCanClick = false
 
 #DEBUG
 $show_rotations = false
@@ -46,7 +48,12 @@ class GearsGame < Gosu::Window
     caption = "Circuitz"
     $default_font = Gosu::Font.new(self, Gosu::default_font_name, 12)
 
-    load_level("world1/level1")
+    load_level("world1/level3")
+  end
+
+  def reset_mouse_box
+    $mouseBoxX = -1
+    $mouseBoxY = -1
   end
 
   def post_init
@@ -105,7 +112,15 @@ class GearsGame < Gosu::Window
   end
 
   def tile_exists?(x, y)
-    return ((x >= 0) and (x < $tileCountW) and (y >= 0) and (y < $tileCountH))
+    if((x >= 0) and (x < $tileCountW) and (y >= 0) and (y < $tileCountH))
+      return @backboard[tile_index(x,y)].exists?
+    end
+  end
+
+  def tile_can_rotate?(x, y)
+    if((x >= 0) and (x < $tileCountW) and (y >= 0) and (y < $tileCountH))
+      return @backboard[tile_index(x,y)].can_rotate?
+    end
   end
 
   def tile_index(x, y)
@@ -142,6 +157,8 @@ class GearsGame < Gosu::Window
       tmpMouseBoxY = -1
     end
 
+    mouseMoved = false
+
     if(self.tile_exists?(tmpMouseBoxX,tmpMouseBoxY) and
        self.tile_exists?(tmpMouseBoxX+1,tmpMouseBoxY) and
        self.tile_exists?(tmpMouseBoxX,tmpMouseBoxY+1) and
@@ -149,6 +166,19 @@ class GearsGame < Gosu::Window
       # --- --- --- --- --- --- --- --- --- --- --- --- #
       $mouseBoxX = tmpMouseBoxX
       $mouseBoxY = tmpMouseBoxY
+      mouseMoved = true
+    end
+
+    if mouseMoved
+      $mouseCanClick = false
+    end
+
+    if(self.tile_can_rotate?(tmpMouseBoxX,tmpMouseBoxY) and
+       self.tile_can_rotate?(tmpMouseBoxX+1,tmpMouseBoxY) and
+       self.tile_can_rotate?(tmpMouseBoxX,tmpMouseBoxY+1) and
+       self.tile_can_rotate?(tmpMouseBoxX+1,tmpMouseBoxY+1))
+      # --- --- --- --- --- --- --- --- --- --- --- --- #
+      $mouseCanClick = true
     end
 
     if isAnimating
@@ -156,7 +186,7 @@ class GearsGame < Gosu::Window
     end
 
     #REACT TO CLICKS
-    if self.button_down?(Gosu::MsLeft)
+    if self.button_down?(Gosu::MsLeft) and $mouseCanClick
       idx_0 = tile_index($mouseBoxX, $mouseBoxY)#$mouseBoxY*$tileCountW + $mouseBoxX
       idx_1 = idx_0 + 1
       idx_2 = tile_index($mouseBoxX, $mouseBoxY+1)#($mouseBoxY+1)*$tileCountW + $mouseBoxX
@@ -175,7 +205,7 @@ class GearsGame < Gosu::Window
       @tiles[idx_1] = tmp
 
       $animationTimer = $animationTime
-    elsif self.button_down?(Gosu::MsRight)
+    elsif self.button_down?(Gosu::MsRight) and $mouseCanClick
       idx_0 = $mouseBoxY*$tileCountW + $mouseBoxX
       idx_1 = idx_0 + 1
       idx_2 = ($mouseBoxY+1)*$tileCountW + $mouseBoxX
@@ -256,7 +286,15 @@ class GearsGame < Gosu::Window
   end
 
   def draw_mouse_box
+      if ($mouseBoxX < 0 or $mouseBoxY < 0)
+        return
+      end
+
       outlineColor = $colorWhite
+
+      if not $mouseCanClick
+        outlineColor = $colorRed
+      end
 
       #2 vertical lines and 2 horizontal
       Gosu.draw_rect( $innerX + (($mouseBoxX+0)*$tileSize) - 1, $innerY + ($mouseBoxY*$tileSize) - 1, 3, $tileSize*2 + 3, outlineColor, $gridZ)
@@ -308,6 +346,7 @@ class GearsGame < Gosu::Window
     init_backboard(level["backboard"])
     init_tiles(level["tiles"])
 
+    reset_mouse_box()
   end
 
   class Tile
@@ -810,6 +849,10 @@ class GearsGame < Gosu::Window
       return true
     end
 
+    def exists?
+      return true
+    end
+
     def color
       return $colorBeige
     end
@@ -847,6 +890,10 @@ class GearsGame < Gosu::Window
   class NoBackboardSquare < StaticBackboardSquare
     def initialize(x, y)
       super(x, y)
+    end
+
+    def exists?
+      return false
     end
 
     def draw

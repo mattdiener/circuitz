@@ -6,6 +6,12 @@ $bgZ = 0
 $tileZ = 1
 $gridZ = 2
 
+#ROTATION HELPERS
+$rotation_down = 0
+$rotation_left = 1
+$rotation_up = 2
+$rotation_right = 3
+
 #COLORS
 $colorBrown = Gosu::Color.new(0xff594631)
 $colorGrey = Gosu::Color.new(0xffA8A19C)
@@ -19,50 +25,80 @@ $colorBlack = Gosu::Color.new(0xff000000)
 $tileSourceSize = 16
 $tileSprites = *Gosu::Image.load_tiles("./puzzletiles.png", $tileSourceSize, $tileSourceSize, {retro: true})
 
-#BOARD
-$borderSides = 32
-$borderTopBottom = 48
-
-$tileSize = 64
-
-$innerWidth = 0
-$innerHeight = 0
-
-$innerX = $borderSides
-$innerY = $borderTopBottom
-
-$tileCountW = 0
-$tileCountH = 0
-
-$mouseBoxX = 0
-$mouseBoxY = 0
-
+#SETTINGS
+$tileSize = 128
+$minBorder = 32
 $animationTime = 16
 $animationTimer = 0
 
-$tileScale = $tileSize / $tileSourceSize
+#MOUSE
+$mouseBoxX = 0
+$mouseBoxY = 0
 
 class GearsGame < Gosu::Window
   def initialize
     super 640, 480
-    self.caption = "Circuitz"
+    caption = "Circuitz"
+    init_board(5,5,0)
+    init_tiles()
+  end
+
+  def post_init
+    end_animation()
+  end
+
+  def init_board(width, height, tiles)
+    $tileCountW = width
+    $tileCountH = height
+
+    maxTileWidth = ((self.width-2*$minBorder)/$tileCountW)
+    maxTileHeight = ((self.height-2*$minBorder)/$tileCountH)
+
+    $tileSize = [maxTileWidth, maxTileHeight].min()
+
+    $borderSides = (self.width - $tileCountW*$tileSize)/2
+    $borderTopBottom = (self.height - $tileCountH*$tileSize)/2
+
+    $innerX = $borderSides
+    $innerY = $borderTopBottom
 
     $innerWidth = self.width - (2 * $borderSides)
     $innerHeight = self.height - (2 * $borderTopBottom)
 
-    $tileCountW = $innerWidth / $tileSize
-    $tileCountH = $innerHeight / $tileSize
-
+    $tileScale = $tileSize / $tileSourceSize
+  end
+  
+  def init_tiles()
     @tiles = Array.new($tileCountW * $tileCountH)
     index = 0
-    for y in 1..$tileCountH
-      for x in 1..$tileCountW
-        @tiles[index] = Tile.new(x, y, 0, 0)
+    for y in 0..($tileCountH-1)
+      for x in 0..($tileCountW-1)
+        if index == 4
+          @tiles[index] = SourceTile.new(x, y, 0, 0)
+        else
+          if index%2 == 0
+            if index%4 == 0
+              @tiles[index] = CornerTile.new(x, y, 1, 0)
+            else
+              @tiles[index] = CornerTile.new(x, y, 0, 0)
+            end
+          else
+            if (index+1)%4 == 0
+              @tiles[index] = StraightTile.new(x, y, 1, 0)
+            else
+              @tiles[index] = StraightTile.new(x, y, 0, 0)
+            end
+          end
+        end
         index += 1
       end
     end
   end
-  
+
+  def floor_to_power_of_two(num)
+    return 2**(Math.log2(num).floor())
+  end
+
   def needs_cursor?
     return true
   end
@@ -71,10 +107,22 @@ class GearsGame < Gosu::Window
     return ((x >= 0) and (x < $tileCountW) and (y >= 0) and (y < $tileCountH))
   end
 
+  def tile_index(x, y)
+    return y*$tileCountW + x
+  end
+
+  def send_signal(x, y, signal)
+    if tile_exists?(x, y)
+      @tiles[tile_index(x, y)].receive_signal(signal)
+    end
+  end
+
   def update
+    isAnimating = false
+
     if ($animationTimer > 0)
       self.update_animation()
-      return
+      isAnimating = true
     end
 
     #UPDATE MOUSE POSITION
@@ -102,11 +150,15 @@ class GearsGame < Gosu::Window
       $mouseBoxY = tmpMouseBoxY
     end
 
+    if isAnimating
+      return
+    end
+
     #REACT TO CLICKS
     if self.button_down?(Gosu::MsLeft)
-      idx_0 = $mouseBoxY*$tileCountW + $mouseBoxX
+      idx_0 = tile_index($mouseBoxX, $mouseBoxY)#$mouseBoxY*$tileCountW + $mouseBoxX
       idx_1 = idx_0 + 1
-      idx_2 = ($mouseBoxY+1)*$tileCountW + $mouseBoxX
+      idx_2 = tile_index($mouseBoxX, $mouseBoxY+1)#($mouseBoxY+1)*$tileCountW + $mouseBoxX
       idx_3 = idx_2 + 1
 
       @tiles[idx_0].rotate(1, 0)
@@ -154,12 +206,24 @@ class GearsGame < Gosu::Window
     $animationTimer -= 1
 
     if $animationTimer == 0
-      index = 0
-      for x in 1..$tileCountW
-        for y in 1..$tileCountH
-          @tiles[index].endAnimation()
-          index += 1
-        end
+      end_animation()
+    end
+  end
+
+  def end_animation()
+    index = 0
+    for x in 1..$tileCountW
+      for y in 1..$tileCountH
+        @tiles[index].end_animation()
+        index += 1
+      end
+    end
+
+    index = 0
+    for x in 1..$tileCountW
+      for y in 1..$tileCountH
+        @tiles[index].receive_signal(:on)
+        index += 1
       end
     end
   end
@@ -182,6 +246,7 @@ class GearsGame < Gosu::Window
     for lineY in 0..$tileCountH
       Gosu.draw_rect( $innerX - 1, $innerY + (lineY*$tileSize) - 1, $innerWidth + 3, 3, lineColor, $gridZ )
     end
+  end
 
   def draw_tiles
     index = 0
@@ -205,8 +270,6 @@ class GearsGame < Gosu::Window
       Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+2)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
   end
 
-  end
-
   class Tile
     def initialize(x, y, rotation, type)
       @x = x
@@ -218,7 +281,7 @@ class GearsGame < Gosu::Window
       @rotation = rotation
       @rotationPrev = rotation
 
-      @type = type
+      @spriteIndex = 0
     end
 
     def rotate(direction, boxPosition)
@@ -252,18 +315,20 @@ class GearsGame < Gosu::Window
     end
 
     def draw(animationStage)
+      refresh_sprite_index()
+
       dx = (@x-@xPrev) * animationStage
       dy = (@y-@yPrev) * animationStage
       dRot = (@rotation-@rotationPrev) * animationStage
 
-      $tileSprites[0].draw_rot((@xPrev-1+dx) * $tileSize + $tileSize/2 + $innerX, 
-                         (@yPrev-1+dy) * $tileSize + $tileSize/2 + $innerY, 
-                         $tileZ, (@rotationPrev+dRot)*90, 0.5, 0.5, 
-                         $tileScale, $tileScale, 
-                         0xff_ffffff, :default)
+      $tileSprites[@spriteIndex].draw_rot((@xPrev+dx) * $tileSize + $tileSize/2 + $innerX, 
+                                         (@yPrev+dy) * $tileSize + $tileSize/2 + $innerY, 
+                                         $tileZ, (@rotationPrev+dRot)*90, 0.5, 0.5, 
+                                         $tileScale, $tileScale, 
+                                         0xff_ffffff, :default)
     end
 
-    def endAnimation()
+    def end_animation()
       @xPrev = @x
       @yPrev = @y
 
@@ -278,9 +343,203 @@ class GearsGame < Gosu::Window
 
       @rotationPrev = @rotation
 
+      reset_signal()
+    end
 
+    def send_signal(side)
+      dest_x = @x
+      dest_y = @y
+      dest_side = :none
+
+      if side == :down
+        dest_y += 1
+        dest_side = :up
+      elsif side == :left
+        dest_x -= 1
+        dest_side = :right
+      elsif side == :up
+        dest_y -= 1
+        dest_side = :down
+      elsif side == :right
+        dest_x += 1
+        dest_side = :left
+      end
+
+      $game.send_signal(dest_x, dest_y, dest_side)
+    end
+
+    def receive_signal(side)
+      # :up, :right, :down, :left, :on
+    end
+
+    def reset_signal()
+    end
+
+    def refresh_sprite_index()
+    end
+  end
+
+  class SourceTile < Tile
+    def initialize(x, y, rotation, type)
+      super(x, y, rotation, type)
+
+      @isOn = false
+      @offIndex = 0
+      @onIndex = 1
+    end
+    
+    def reset_signal()
+      @isOn = false
+    end
+
+    def receive_signal(side)
+      if side == :on and not @isOn
+        @isOn = true
+
+        if (@rotation == $rotation_down)
+          send_signal(:down)
+        elsif (@rotation == $rotation_left)
+          send_signal(:left)
+        elsif (@rotation == $rotation_up)
+          send_signal(:up)
+        elsif (@rotation == $rotation_right)
+          send_signal(:right)
+        end
+      end
+    end
+
+    def refresh_sprite_index()
+      if @isOn
+        @spriteIndex = @onIndex
+      else
+        @spriteIndex = @offIndex
+      end
+    end
+  end
+
+  class CornerTile < Tile
+    def initialize(x, y, rotation, type)
+      super(x, y, rotation, type)
+
+      @isOn = false
+      @offIndex = 4
+      @onIndex = 5
+    end
+    
+    def reset_signal()
+      @isOn = false
+    end
+
+    def in_signal_to_out_signal(side)
+      out = :none
+
+      case @rotation
+      when $rotation_down
+        if side == :down
+          out = :right
+        end
+        if side == :right
+          out = :down
+        end
+      when $rotation_left
+        if side == :down
+          out = :left
+        end
+        if side == :left
+          out = :down
+        end
+      when $rotation_up
+        if side == :left
+          out = :up
+        end
+        if side == :up
+          out = :left
+        end
+      when $rotation_right
+        if side == :up
+          out = :right
+        end
+        if side == :right
+          out = :up
+        end
+      end
+
+      return out
+    end
+
+    def receive_signal(side)
+      out_side = in_signal_to_out_signal(side)
+
+      if not @isOn and out_side != :none
+        @isOn = true
+        send_signal(out_side)
+      end
+    end
+
+    def refresh_sprite_index()
+      if @isOn
+        @spriteIndex = @onIndex
+      else
+        @spriteIndex = @offIndex
+      end
+    end
+  end
+
+    class StraightTile < Tile
+    def initialize(x, y, rotation, type)
+      super(x, y, rotation, type)
+
+      @isOn = false
+      @offIndex = 6
+      @onIndex = 7
+    end
+    
+    def reset_signal()
+      @isOn = false
+    end
+
+    def in_signal_to_out_signal(side)
+      out = :none
+
+      case @rotation
+      when $rotation_down, $rotation_up
+        if side == :down
+          out = :up
+        end
+        if side == :up
+          out = :down
+        end
+      when $rotation_left, $rotation_right
+        if side == :right
+          out = :left
+        end
+        if side == :left
+          out = :right
+        end
+      end
+
+      return out
+    end
+
+    def receive_signal(side)
+      out_side = in_signal_to_out_signal(side)
+
+      if not @isOn and out_side != :none
+        @isOn = true
+        send_signal(out_side)
+      end
+    end
+
+    def refresh_sprite_index()
+      if @isOn
+        @spriteIndex = @onIndex
+      else
+        @spriteIndex = @offIndex
+      end
     end
   end
 end
 
-GearsGame.new.show
+$game = GearsGame.new()
+$game.post_init()
+$game.show()

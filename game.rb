@@ -35,12 +35,17 @@ $animationTimer = 0
 $mouseBoxX = 0
 $mouseBoxY = 0
 
+#DEBUG
+$show_rotations = false
+
 class GearsGame < Gosu::Window
   def initialize
     super 640, 480
     caption = "Circuitz"
     init_board(5,5,0)
     init_tiles()
+
+    $default_font = Gosu::Font.new(self, Gosu::default_font_name, 12)
   end
 
   def post_init
@@ -75,19 +80,17 @@ class GearsGame < Gosu::Window
       for x in 0..($tileCountW-1)
         if index == 4
           @tiles[index] = SourceTile.new(x, y, 0, 0)
+        elsif index == 5
+          @tiles[index] = SinkTile.new(x, y, 0, 0)
         else
           if index%2 == 0
             if index%4 == 0
-              @tiles[index] = CornerTile.new(x, y, 1, 0)
+              @tiles[index] = DoubleCornerTile.new(x, y, 1, 0)
             else
-              @tiles[index] = CornerTile.new(x, y, 0, 0)
+              @tiles[index] = DoubleCornerTile.new(x, y, 0, 0)
             end
           else
-            if (index+1)%4 == 0
-              @tiles[index] = StraightTile.new(x, y, 1, 0)
-            else
-              @tiles[index] = StraightTile.new(x, y, 0, 0)
-            end
+            @tiles[index] = OverUnderTile.new(x, y, 1, 0)
           end
         end
         index += 1
@@ -326,6 +329,13 @@ class GearsGame < Gosu::Window
                                          $tileZ, (@rotationPrev+dRot)*90, 0.5, 0.5, 
                                          $tileScale, $tileScale, 
                                          0xff_ffffff, :default)
+
+      if $show_rotations
+        $default_font.draw(@rotation.to_s, 
+                           @x*$tileSize + $tileSize/2 + $innerX, 
+                           @y*$tileSize + $tileSize/2 + $innerY, 
+                           1, $tileScale, $tileScale, Gosu::Color::BLUE)
+      end
     end
 
     def end_animation()
@@ -485,7 +495,7 @@ class GearsGame < Gosu::Window
     end
   end
 
-    class StraightTile < Tile
+  class StraightTile < Tile
     def initialize(x, y, rotation, type)
       super(x, y, rotation, type)
 
@@ -527,6 +537,214 @@ class GearsGame < Gosu::Window
       if not @isOn and out_side != :none
         @isOn = true
         send_signal(out_side)
+      end
+    end
+
+    def refresh_sprite_index()
+      if @isOn
+        @spriteIndex = @onIndex
+      else
+        @spriteIndex = @offIndex
+      end
+    end
+  end
+
+  class OverUnderTile < Tile
+    def initialize(x, y, rotation, type)
+      super(x, y, rotation, type)
+
+      @isOnOver = false
+      @isOnUnder = false
+
+      @offIndex = 8
+      @onOverIndex = 9
+      @onUnderIndex = 10
+      @onIndex = 11
+
+    end
+    
+    def reset_signal()
+      @isOnOver = false
+      @isOnUnder = false
+    end
+
+    def in_signal_to_out_signal(side)
+      if side == :down
+        return :up
+      end
+      if side == :up
+        return :down
+      end
+      if side == :right
+        return :left
+      end
+      if side == :left
+        return :right
+      end
+    end
+
+    def receive_signal(side)
+      out_side = in_signal_to_out_signal(side)
+
+      case @rotation
+      when $rotation_up, $rotation_down
+        if (out_side == :up or out_side == :down) and not @isOnUnder
+          @isOnUnder = true
+          send_signal(out_side)
+        elsif (out_side == :left or out_side == :right) and not @isOnOver
+          @isOnOver = true
+          send_signal(out_side)
+        end 
+      when $rotation_left, $rotation_right
+                if (out_side == :up or out_side == :down) and not @isOnOver
+          @isOnOver = true
+          send_signal(out_side)
+        elsif (out_side == :left or out_side == :right) and not @isOnUnder
+          @isOnUnder = true
+          send_signal(out_side)
+        end 
+      end
+    end
+
+    def refresh_sprite_index()
+      if @isOnOver and @isOnUnder
+        @spriteIndex = @onIndex
+      elsif @isOnOver
+        @spriteIndex = @onOverIndex
+      elsif @isOnUnder
+        @spriteIndex = @onUnderIndex
+      else
+        @spriteIndex = @offIndex
+      end
+    end
+  end
+
+  class DoubleCornerTile < Tile
+    def initialize(x, y, rotation, type)
+      super(x, y, rotation, type)
+
+      @isOnA = false #down-right
+      @isOnB = false #up-left
+
+      @offIndex = 12
+      @onAIndex = 13
+      @onBIndex = 14
+      @onIndex = 15
+
+    end
+    
+    def reset_signal()
+      @isOnA = false
+      @isOnB = false
+    end
+
+    def in_signal_to_out_signal(side)
+      case @rotation
+      when $rotation_up, $rotation_down
+        if side == :down
+          return :right
+        end
+        if side == :right
+          return :down
+        end
+        if side == :up
+          return :left
+        end
+        if side == :left
+          return :up
+        end
+      when $rotation_left, $rotation_right
+        if side == :down
+          return :left
+        end
+        if side == :left
+          return :down
+        end
+        if side == :up
+          return :right
+        end
+        if side == :right
+          return :up
+        end
+      end
+    end
+
+    def receive_signal(side)
+      out_side = in_signal_to_out_signal(side)
+
+      case @rotation
+      when $rotation_down
+        if (out_side == :down or out_side == :right) and not @isOnA
+          @isOnA = true
+          send_signal(out_side)
+        elsif (out_side == :up or out_side == :left) and not @isOnB
+          @isOnB = true
+          send_signal(out_side)
+        end 
+      when $rotation_left
+        if (out_side == :down or out_side == :left) and not @isOnA
+          @isOnA = true
+          send_signal(out_side)
+        elsif (out_side == :up or out_side == :right) and not @isOnB
+          @isOnB = true
+          send_signal(out_side)
+        end 
+      when $rotation_up
+        if (out_side == :up or out_side == :left) and not @isOnA
+          @isOnA = true
+          send_signal(out_side)
+        elsif (out_side == :down or out_side == :right) and not @isOnB
+          @isOnB = true
+          send_signal(out_side)
+        end 
+      when $rotation_right
+        if (out_side == :up or out_side == :right) and not @isOnA
+          @isOnA = true
+          send_signal(out_side)
+        elsif (out_side == :down or out_side == :left) and not @isOnB
+          @isOnB = true
+          send_signal(out_side)
+        end 
+      end
+    end
+
+    def refresh_sprite_index()
+      if @isOnA and @isOnB
+        @spriteIndex = @onIndex
+      elsif @isOnA
+        @spriteIndex = @onAIndex
+      elsif @isOnB
+        @spriteIndex = @onBIndex
+      else
+        @spriteIndex = @offIndex
+      end
+    end
+  end
+
+  class SinkTile < Tile
+    def initialize(x, y, rotation, type)
+      super(x, y, rotation, type)
+
+      @isOn = false
+
+      @offIndex = 2
+      @onIndex = 3
+
+    end
+    
+    def reset_signal()
+      @isOn = false
+    end
+
+    def receive_signal(side)
+      if side == :down and @rotation == $rotation_down
+        @isOn = true
+      elsif side == :left and @rotation == $rotation_left
+        @isOn = true
+      elsif side == :up and @rotation == $rotation_up
+        @isOn = true
+      elsif side == :right and @rotation == $rotation_right
+        @isOn = true
       end
     end
 

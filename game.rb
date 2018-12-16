@@ -132,6 +132,14 @@ class GearsGame < Gosu::Window
         @backboard[tile_index_a] = @backboard[tile_index_a].create_next_backboard_type()
       when Gosu::KB_T
         @tiles[tile_index_a] = @tiles[tile_index_a].create_next_tile_type()
+      when Gosu::KB_I
+        debug_size_board(:up)
+      when Gosu::KB_J
+        debug_size_board(:left)
+      when Gosu::KB_K
+        debug_size_board(:down)
+      when Gosu::KB_L 
+        debug_size_board(:right)
       end
     else
       #non-debug only
@@ -143,6 +151,9 @@ class GearsGame < Gosu::Window
     $mouseBoxX = -1
     $mouseBoxY = -1
     $mouseCanClick = false
+
+    $debug_box_x = -1
+    $debug_box_y = -1
   end
 
   def post_init
@@ -192,6 +203,61 @@ class GearsGame < Gosu::Window
     end
   end
 
+  def debug_size_board(direction)
+    height_new = $tileCountH
+    width_new = $tileCountW
+
+    case direction
+    when :up
+      height_new -= 1
+    when :left
+      width_new -= 1
+    when :down
+      height_new += 1
+    when :right
+      width_new += 1
+    end
+
+    if height_new < 1
+      height_new = 1
+    end
+
+    if width_new < 1
+      width_new = 1
+    end
+
+    xMax = [width_new, $tileCountW].min() - 1
+    yMax = [height_new, $tileCountH].min() - 1
+    
+    tiles_new = Array.new(width_new, height_new)
+    backboard_new = Array.new(width_new, height_new)
+
+    index = 0
+    for y in 0..height_new-1
+      for x in 0..width_new-1
+        if tile_in_range?(x,y)
+          old_index = tile_index(x,y)
+          tiles_new[index] = @tiles[old_index]
+          tiles_new[index].set_position(x,y)
+          backboard_new[index] = @backboard[old_index]
+          backboard_new[index].set_position(x,y)
+        else
+          tiles_new[index] = create_tile(x, y, 0, "n")
+          tiles_new[index].set_position(x,y)
+          backboard_new[index] = create_backboard_square(x, y, "n")
+        end
+        index += 1
+      end
+    end
+
+    init_board(width_new, height_new)
+
+    @tiles = tiles_new
+    @backboard = backboard_new
+
+    reset_mouse_box()
+  end
+
   def floor_to_power_of_two(num)
     return 2**(Math.log2(num).floor())
   end
@@ -201,9 +267,13 @@ class GearsGame < Gosu::Window
   end
 
   def tile_exists?(x, y)
-    if((x >= 0) and (x < $tileCountW) and (y >= 0) and (y < $tileCountH))
+    if tile_in_range?(x, y)
       return @backboard[tile_index(x,y)].exists?
     end
+  end
+
+  def tile_in_range?(x, y)
+    return ((x >= 0) and (x < $tileCountW) and (y >= 0) and (y < $tileCountH))
   end
 
   def tile_can_rotate?(x, y)
@@ -439,7 +509,15 @@ class GearsGame < Gosu::Window
     animationProgress = ($animationTime-$animationTimer)/($animationTime*1.0)
 
     if $debug_mode
-      $default_font.draw_text("DEBUG",0,0,1,1,1,Gosu::Color::GREEN)
+      #DEBUG_WARNING
+      $default_font.draw_text("DEBUG",
+                              0, 0, $overlayZ,
+                              1, 1, Gosu::Color::GREEN)
+
+      #BOX_SIZE
+      $default_font.draw_text_rel("#{$tileCountW}x#{$tileCountH}",
+                                   0, self.height, $overlayZ,
+                                   0, 1.0, 1, 1, Gosu::Color::GREEN)
     end
 
     if @fade_state == :in
@@ -513,6 +591,11 @@ class GearsGame < Gosu::Window
       @rotationPrev = rotation
 
       @spriteIndex = 0
+    end
+
+    def set_position(x, y)
+      @x = x
+      @y = y
     end
 
     def rotate(direction, boxPosition)
@@ -1051,6 +1134,11 @@ class GearsGame < Gosu::Window
 
   class BackboardSquare
     def initialize(x, y)
+      @x = x
+      @y = y
+    end
+
+    def set_position(x, y)
       @x = x
       @y = y
     end

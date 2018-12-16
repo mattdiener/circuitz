@@ -46,6 +46,7 @@ $debug_mode = false
 $show_rotations = false
 $debug_box_x = -1
 $debug_box_y = -1
+$enable_level_completion = true
 
 class GearsGame < Gosu::Window
   def initialize
@@ -145,6 +146,8 @@ class GearsGame < Gosu::Window
       $debug_mode = (not $debug_mode)
     when Gosu::KB_F1
       $show_rotations = (not $show_rotations)
+    when Gosu::KB_F2
+      $enable_level_completion = (not $enable_level_completion)
     end
 
     if $debug_mode
@@ -508,7 +511,7 @@ class GearsGame < Gosu::Window
       @fade_state = :none
     elsif @fade_state == :out
       load_level(@next_level)
-    elsif level_done?
+    elsif level_done? and $enable_level_completion
       @fade_state = :out
       $animationTimer = $animationTime
     end
@@ -583,6 +586,17 @@ class GearsGame < Gosu::Window
       $default_font.draw_text_rel("#{$tileCountW}x#{$tileCountH}",
                                    0, self.height, $overlayZ,
                                    0, 1.0, 1, 1, Gosu::Color::GREEN)
+    end
+
+    if not $enable_level_completion 
+      color = Gosu::Color::RED
+      if level_done?
+        color = Gosu::Color::GREEN
+      end
+
+      $default_font.draw_text_rel("level transitions disabled",
+                                   self.width, 0, $overlayZ,
+                                   1.0, 0, 1, 1, color)
     end
 
     if @fade_state == :in

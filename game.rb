@@ -1,6 +1,8 @@
 #THIS GAME IS A HACK
 require 'gosu'
 require 'json'
+require 'fileutils'
+require 'io/console'
 
 #Z coordinate
 $bgZ = 0
@@ -53,6 +55,81 @@ class GearsGame < Gosu::Window
     $default_font = Gosu::Font.new(self, Gosu::default_font_name, 24)
 
     load_level("test/level1")
+
+    STDOUT.sync = true
+
+    @debug_console_thread = Thread.new do handle_console end
+  end
+
+  def close
+    super
+    STDIN.ungetc("\n")
+    STDIN.ungetc("!")
+    @debug_console_thread.kill
+  end
+
+  def handle_console
+    STDIN.each_line do |line|
+      command, *args = line.split(" ")
+
+      case command
+      when "save"
+        save_current_level_as(args[0], false) if args[0]
+      when "save_hard"
+        save_current_level_as(args[0], true) if args[0]
+      when "load"
+        load_level(args[0]) if args[0]
+      when "!"
+        puts "Byebye"
+        STDIN.close()
+        return
+      end
+
+    rescue => e
+      puts e
+    end
+  end
+
+  def save_current_level_as(name, force)
+    level_file = "levels/#{name}.json"
+
+    backboard = Array.new($tileCountW*$tileCountH)
+    tiles = Array.new($tileCountW*$tileCountH)
+
+    index = 0
+    for x in 1..$tileCountW
+      for y in 1..$tileCountH
+        tiles[index] = @tiles[index].to_serial
+        backboard[index] = @backboard[index].to_serial
+        index += 1
+      end
+    end
+
+    level = {
+              'width' => $tileCountW,
+              'height' => $tileCountH,
+              'backboard' => backboard,
+              'tiles' => tiles,
+              'next_level' => ''
+            }
+
+    can_write = true
+
+    if File.file?(level_file) and not force
+      puts "file already exists with name: #{level_file} -- use save_hard to overwrite"
+      can_write = false
+    end
+
+    if can_write
+      dir = File.dirname(level_file)
+      unless File.directory?(dir) 
+        FileUtils.mkdir_p(dir)
+      end
+
+      f = File.new(level_file, 'w')
+      f.write(JSON.pretty_generate(level))
+      f.close()
+    end
   end
 
   def button_down(btn)
@@ -267,9 +344,8 @@ class GearsGame < Gosu::Window
   end
 
   def tile_exists?(x, y)
-    if tile_in_range?(x, y)
-      return @backboard[tile_index(x,y)].exists?
-    end
+    return @backboard[tile_index(x,y)].exists? if tile_in_range?(x, y)
+    return false
   end
 
   def tile_in_range?(x, y)
@@ -287,9 +363,7 @@ class GearsGame < Gosu::Window
   end
 
   def send_signal(x, y, signal)
-    if tile_exists?(x, y)
-      @tiles[tile_index(x, y)].receive_signal(signal)
-    end
+    @tiles[tile_index(x, y)].receive_signal(signal) if tile_exists?(x, y)
   end
 
   def update
@@ -328,9 +402,7 @@ class GearsGame < Gosu::Window
       mouseMoved = true
     end
 
-    if mouseMoved
-      $mouseCanClick = false
-    end
+    $mouseCanClick = false if mouseMoved
 
     if(self.tile_can_rotate?(tmpMouseBoxX,tmpMouseBoxY) and
        self.tile_can_rotate?(tmpMouseBoxX+1,tmpMouseBoxY) and
@@ -345,10 +417,8 @@ class GearsGame < Gosu::Window
       $debug_box_y = tmpMouseBoxY
     end
 
-    if isAnimating or $debug_mode
-      return
-    end
-
+    return if isAnimating or $debug_mode
+    
     #REACT TO CLICKS
     if self.button_down?(Gosu::MsLeft) and $mouseCanClick
       idx_0 = tile_index($mouseBoxX, $mouseBoxY)#$mouseBoxY*$tileCountW + $mouseBoxX
@@ -404,9 +474,7 @@ class GearsGame < Gosu::Window
     index = 0
     for y in 0..($tileCountH-1)
       for x in 0..($tileCountW-1)
-        if not @tiles[index].condition_satisfied?
-          level_done = false
-        end
+        level_done = false if not @tiles[index].condition_satisfied?
         index += 1
       end
     end
@@ -416,10 +484,7 @@ class GearsGame < Gosu::Window
 
   def update_animation
     $animationTimer -= 1
-
-    if $animationTimer == 0
-      end_animation()
-    end
+    end_animation() if $animationTimer == 0
   end
 
   def end_animation()
@@ -564,6 +629,8 @@ class GearsGame < Gosu::Window
   end
 
   def load_level(name)
+    return if not name or name == ''
+
     levelString = File.read(File.join("levels", name + ".json"))
     level = JSON.parse(levelString)
 
@@ -571,6 +638,7 @@ class GearsGame < Gosu::Window
     init_backboard(level["backboard"])
     init_tiles(level["tiles"])
 
+    @current_level = name
     @next_level = level["next_level"]
 
     reset_mouse_box()
@@ -591,6 +659,17 @@ class GearsGame < Gosu::Window
       @rotationPrev = rotation
 
       @spriteIndex = 0
+    end
+
+    def type_letter
+      return 'x'
+    end
+
+    def to_serial
+      return  {
+                'type' => type_letter, 
+                'rotation' => @rotation
+              }
     end
 
     def set_position(x, y)
@@ -735,6 +814,10 @@ class GearsGame < Gosu::Window
       #noop
     end
 
+    def type_letter
+      return 'n'
+    end
+
     def create_next_tile_type()
       return SourceTile.new(@x, @y, @rotation)
     end
@@ -749,6 +832,10 @@ class GearsGame < Gosu::Window
       @onIndex = 1
     end
     
+    def type_letter
+      return 's'
+    end
+
     def reset_signal()
       @isOn = false
     end
@@ -789,6 +876,10 @@ class GearsGame < Gosu::Window
       @isOn = false
       @offIndex = 4
       @onIndex = 5
+    end
+
+    def type_letter
+      return 'c'
     end
     
     def reset_signal()
@@ -863,6 +954,10 @@ class GearsGame < Gosu::Window
       @onIndex = 7
     end
     
+    def type_letter
+      return 'l'
+    end
+
     def reset_signal()
       @isOn = false
     end
@@ -925,6 +1020,10 @@ class GearsGame < Gosu::Window
       @onIndex = 11
     end
     
+    def type_letter
+      return 'L'
+    end
+
     def reset_signal()
       @isOnOver = false
       @isOnUnder = false
@@ -998,6 +1097,10 @@ class GearsGame < Gosu::Window
       @onIndex = 15
     end
     
+    def type_letter
+      return 'C'
+    end
+
     def reset_signal()
       @isOnA = false
       @isOnB = false
@@ -1098,6 +1201,10 @@ class GearsGame < Gosu::Window
       @offIndex = 2
       @onIndex = 3
     end
+
+    def type_letter
+      return 'k'
+    end
     
     def reset_signal()
       @isOn = false
@@ -1136,6 +1243,10 @@ class GearsGame < Gosu::Window
     def initialize(x, y)
       @x = x
       @y = y
+    end
+
+    def to_serial
+      return 'd'
     end
 
     def set_position(x, y)
@@ -1180,6 +1291,10 @@ class GearsGame < Gosu::Window
       super(x, y)
     end
 
+    def to_serial
+      return 's'
+    end
+
     def can_rotate?
       return false
     end
@@ -1196,6 +1311,10 @@ class GearsGame < Gosu::Window
   class NoBackboardSquare < StaticBackboardSquare
     def initialize(x, y)
       super(x, y)
+    end
+
+    def to_serial
+      return 'n'
     end
 
     def exists?

@@ -40,16 +40,28 @@ $mouseBoxY = -1
 $mouseCanClick = false
 
 #DEBUG
+$debug_mode = false
 $show_rotations = false
+$debug_box_x = -1
+$debug_box_y = -1
 
 class GearsGame < Gosu::Window
   def initialize
     super 640, 480
 
     self.caption = "Circuitz"
-    $default_font = Gosu::Font.new(self, Gosu::default_font_name, 12)
+    $default_font = Gosu::Font.new(self, Gosu::default_font_name, 24)
 
     load_level("test/level1")
+  end
+
+  def button_down(btn)
+    case btn
+    when Gosu::KB_BACKTICK
+      $debug_mode = (not $debug_mode)
+    when Gosu::KB_F1
+      $show_rotations = (not $show_rotations)
+    end
   end
 
   def reset_mouse_box
@@ -183,7 +195,12 @@ class GearsGame < Gosu::Window
       $mouseCanClick = true
     end
 
-    if isAnimating
+    if(self.tile_exists?(tmpMouseBoxX,tmpMouseBoxY))
+      $debug_box_x = tmpMouseBoxX
+      $debug_box_y = tmpMouseBoxY
+    end
+
+    if isAnimating or $debug_mode
       return
     end
 
@@ -313,9 +330,7 @@ class GearsGame < Gosu::Window
   end
 
   def draw_mouse_box
-      if ($mouseBoxX < 0 or $mouseBoxY < 0)
-        return
-      end
+      
 
       outlineColor = $colorWhite
 
@@ -324,15 +339,35 @@ class GearsGame < Gosu::Window
       end
 
       #2 vertical lines and 2 horizontal
-      Gosu.draw_rect( $innerX + (($mouseBoxX+0)*$tileSize) - 1, $innerY + ($mouseBoxY*$tileSize) - 1, 3, $tileSize*2 + 3, outlineColor, $gridZ)
-      Gosu.draw_rect( $innerX + (($mouseBoxX+2)*$tileSize) - 1, $innerY + ($mouseBoxY*$tileSize) - 1, 3, $tileSize*2 + 3, outlineColor, $gridZ)
+      if not $debug_mode
+        if ($mouseBoxX < 0 or $mouseBoxY < 0)
+          return
+        end
 
-      Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+0)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
-      Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+2)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
+        Gosu.draw_rect( $innerX + (($mouseBoxX+0)*$tileSize) - 1, $innerY + ($mouseBoxY*$tileSize) - 1, 3, $tileSize*2 + 3, outlineColor, $gridZ)
+        Gosu.draw_rect( $innerX + (($mouseBoxX+2)*$tileSize) - 1, $innerY + ($mouseBoxY*$tileSize) - 1, 3, $tileSize*2 + 3, outlineColor, $gridZ)
+        Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+0)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
+        Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+2)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
+      elsif $debug_mode 
+        if ($debug_box_x < 0 or $debug_box_y < 0)
+          return
+        end
+
+        debugColor = Gosu::Color::GREEN
+
+        Gosu.draw_rect($innerX + (($debug_box_x+0)*$tileSize) - 1, $innerY + ($debug_box_y*$tileSize) - 1, 3, $tileSize + 3, debugColor, $gridZ)
+        Gosu.draw_rect($innerX + (($debug_box_x+1)*$tileSize) - 1, $innerY + ($debug_box_y*$tileSize) - 1, 3, $tileSize + 3, debugColor, $gridZ)
+        Gosu.draw_rect($innerX + ($debug_box_x*$tileSize) - 1, $innerY + (($debug_box_y+0)*$tileSize) - 1, $tileSize + 3, 3, debugColor, $gridZ)
+        Gosu.draw_rect($innerX + ($debug_box_x*$tileSize) - 1, $innerY + (($debug_box_y+1)*$tileSize) - 1, $tileSize + 3, 3, debugColor, $gridZ)
+      end
   end
 
   def draw_overlay
     animationProgress = ($animationTime-$animationTimer)/($animationTime*1.0)
+
+    if $debug_mode
+      $default_font.draw_text("DEBUG",0,0,1,1,1,Gosu::Color::GREEN)
+    end
 
     if @fade_state == :in
       color = Gosu::Color.new(255*(1-animationProgress),0,0,0)
@@ -451,10 +486,10 @@ class GearsGame < Gosu::Window
                                          0xff_ffffff, :default)
 
       if $show_rotations
-        $default_font.draw(@rotation.to_s, 
+        $default_font.draw_text_rel(@rotation.to_s, 
                            @x*$tileSize + $tileSize/2 + $innerX, 
                            @y*$tileSize + $tileSize/2 + $innerY, 
-                           1, $tileScale, $tileScale, Gosu::Color::BLUE)
+                           $tileZ, 0.5, 0.5, $tileScale/2, $tileScale/2, Gosu::Color::BLUE)
       end
     end
 

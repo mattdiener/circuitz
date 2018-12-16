@@ -1,0 +1,159 @@
+{
+  "width": 6,
+  "height": 5,
+  "backboard": [
+    "n",
+    "s",
+    "s",
+    "d",
+    "d",
+    "s",
+    "d",
+    "d",
+    "s",
+    "d",
+    "d",
+    "n",
+    "d",
+    "d",
+    "s",
+    "d",
+    "d",
+    "n",
+    "d",
+    "d",
+    "s",
+    "n",
+    "n",
+    "n",
+    "s",
+    "n",
+    "n",
+    "n",
+    "n",
+    "n"
+  ],
+  "tiles": [
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "s",
+      "rotation": 0
+    },
+    {
+      "type": "c",
+      "rotation": 0
+    },
+    {
+      "type": "c",
+      "rotation": 0
+    },
+    {
+      "type": "l",
+      "rotation": 1
+    },
+    {
+      "type": "k",
+      "rotation": 1
+    },
+    {
+      "type": "c",
+      "rotation": 0
+    },
+    {
+      "type": "c",
+      "rotation": 2
+    },
+    {
+      "type": "L",
+      "rotation": 1
+    },
+    {
+      "type": "C",
+      "rotation": 3
+    },
+    {
+      "type": "l",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "L",
+      "rotation": 1
+    },
+    {
+      "type": "l",
+      "rotation": 0
+    },
+    {
+      "type": "C",
+      "rotation": 0
+    },
+    {
+      "type": "c",
+      "rotation": 2
+    },
+    {
+      "type": "l",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "l",
+      "rotation": 0
+    },
+    {
+      "type": "l",
+      "rotation": 2
+    },
+    {
+      "type": "k",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "s",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    }
+  ],
+  "next_level": "world1/level1"
+}

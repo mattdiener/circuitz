@@ -1,0 +1,59 @@
+{
+  "width": 5,
+  "height": 2,
+  "backboard": [
+    "d",
+    "d",
+    "s",
+    "d",
+    "d",
+    "d",
+    "d",
+    "s",
+    "d",
+    "d"
+  ],
+  "tiles": [
+    {
+      "type": "k",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "c",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "c",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "s",
+      "rotation": 3
+    }
+  ],
+  "next_level": "world1/level6"
+}

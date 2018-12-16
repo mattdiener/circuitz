@@ -55,7 +55,7 @@ class GearsGame < Gosu::Window
     self.caption = "Circuitz"
     $default_font = Gosu::Font.new(self, Gosu::default_font_name, 24)
 
-    load_level("test/level1")
+    load_level("world1/level1")
 
     STDOUT.sync = true
 

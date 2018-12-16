@@ -1,0 +1,84 @@
+{
+  "width": 5,
+  "height": 3,
+  "backboard": [
+    "d",
+    "d",
+    "s",
+    "d",
+    "d",
+    "d",
+    "d",
+    "s",
+    "d",
+    "d",
+    "d",
+    "d",
+    "n",
+    "n",
+    "n"
+  ],
+  "tiles": [
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "c",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "k",
+      "rotation": 1
+    },
+    {
+      "type": "c",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "s",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    }
+  ],
+  "next_level": "world1/level7"
+}

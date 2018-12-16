@@ -56,11 +56,82 @@ class GearsGame < Gosu::Window
   end
 
   def button_down(btn)
+    isAnimating = false
+    if ($animationTimer > 0)
+      self.update_animation()
+      isAnimating = true
+    end
+
+
     case btn
     when Gosu::KB_BACKTICK
       $debug_mode = (not $debug_mode)
     when Gosu::KB_F1
       $show_rotations = (not $show_rotations)
+    end
+
+    if $debug_mode
+      tile_index_a = tile_index($debug_box_x,$debug_box_y)
+      tile_index_b = tile_index($debug_box_x,$debug_box_y)
+
+      #debug only
+      case btn
+      when Gosu::KB_W
+        #swap up
+        if tile_exists?($debug_box_x,$debug_box_y) and
+           tile_exists?($debug_box_x,$debug_box_y-1)
+          tile_index_b = tile_index($debug_box_x,$debug_box_y-1)
+          @tiles[tile_index_a].debug_translate(:up)
+          @tiles[tile_index_b].debug_translate(:down)
+          @tiles[tile_index_a], @tiles[tile_index_b] = @tiles[tile_index_b], @tiles[tile_index_a]
+          $animationTimer = $animationTime
+        end
+      when Gosu::KB_A
+        #swap left
+        if tile_exists?($debug_box_x,$debug_box_y) and
+           tile_exists?($debug_box_x-1,$debug_box_y)
+          tile_index_b = tile_index($debug_box_x-1,$debug_box_y)
+          @tiles[tile_index_a].debug_translate(:left)
+          @tiles[tile_index_b].debug_translate(:right)
+          @tiles[tile_index_a], @tiles[tile_index_b] = @tiles[tile_index_b], @tiles[tile_index_a]
+          $animationTimer = $animationTime
+        end
+      when Gosu::KB_S
+        #swap down
+        if tile_exists?($debug_box_x,$debug_box_y) and
+           tile_exists?($debug_box_x,$debug_box_y+1)
+          tile_index_b = tile_index($debug_box_x,$debug_box_y+1)
+          @tiles[tile_index_a].debug_translate(:down)
+          @tiles[tile_index_b].debug_translate(:up)
+          @tiles[tile_index_a], @tiles[tile_index_b] = @tiles[tile_index_b], @tiles[tile_index_a]
+          $animationTimer = $animationTime
+        end
+      when Gosu::KB_D
+        #swap right
+        if tile_exists?($debug_box_x,$debug_box_y) and
+           tile_exists?($debug_box_x+1,$debug_box_y)
+          tile_index_b = tile_index($debug_box_x+1,$debug_box_y)
+          @tiles[tile_index_a].debug_translate(:right)
+          @tiles[tile_index_b].debug_translate(:left)
+          @tiles[tile_index_a], @tiles[tile_index_b] = @tiles[tile_index_b], @tiles[tile_index_a]
+          $animationTimer = $animationTime
+        end
+      when Gosu::KB_Q
+        #swap right
+        if tile_exists?($debug_box_x,$debug_box_y)
+          @tiles[tile_index_a].debug_rotate(-1)
+          $animationTimer = $animationTime
+        end
+      when Gosu::KB_E
+        #swap right
+        if tile_exists?($debug_box_x,$debug_box_y)
+          @tiles[tile_index_a].debug_rotate(1)
+          $animationTimer = $animationTime
+        end
+      end
+    else
+      #non-debug only
+
     end
   end
 
@@ -469,6 +540,28 @@ class GearsGame < Gosu::Window
         elsif (direction == -1)
           @y -= 1
         end
+      end
+    end
+
+    def debug_translate(direction)
+      case direction
+      when :down
+        @y += 1
+      when :up
+        @y -= 1
+      when :left
+        @x -= 1
+      when :right
+        @x += 1
+      end
+    end
+
+    def debug_rotate(direction)
+      case direction
+      when 1
+        @rotation += 1
+      when -1
+        @rotation -= 1
       end
     end
 

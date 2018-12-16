@@ -6,6 +6,7 @@ require 'json'
 $bgZ = 0
 $tileZ = 1
 $gridZ = 2
+$overlayZ = 3
 
 #ROTATION HELPERS
 $rotation_down = 0
@@ -45,15 +46,16 @@ class GearsGame < Gosu::Window
   def initialize
     super 640, 480
 
-    caption = "Circuitz"
+    self.caption = "Circuitz"
     $default_font = Gosu::Font.new(self, Gosu::default_font_name, 12)
 
-    load_level("world1/level3")
+    load_level("test/level1")
   end
 
   def reset_mouse_box
     $mouseBoxX = -1
     $mouseBoxY = -1
+    $mouseCanClick = false
   end
 
   def post_init
@@ -232,6 +234,22 @@ class GearsGame < Gosu::Window
     self.draw_tiles()
     self.draw_backboard()
     self.draw_mouse_box()
+    self.draw_overlay()
+  end
+
+  def level_done?
+    level_done = true
+    index = 0
+    for y in 0..($tileCountH-1)
+      for x in 0..($tileCountW-1)
+        if not @tiles[index].condition_satisfied?
+          level_done = false
+        end
+        index += 1
+      end
+    end
+
+    return level_done
   end
 
   def update_animation
@@ -257,6 +275,15 @@ class GearsGame < Gosu::Window
         @tiles[index].receive_signal(:on)
         index += 1
       end
+    end
+
+    if @fade_state == :in
+      @fade_state = :none
+    elsif @fade_state == :out
+      load_level(@next_level)
+    elsif level_done?
+      @fade_state = :out
+      $animationTimer = $animationTime
     end
   end
 
@@ -304,6 +331,18 @@ class GearsGame < Gosu::Window
       Gosu.draw_rect( $innerX + ($mouseBoxX*$tileSize) - 1, $innerY + (($mouseBoxY+2)*$tileSize) - 1, $tileSize*2 + 3, 3, outlineColor, $gridZ)
   end
 
+  def draw_overlay
+    animationProgress = ($animationTime-$animationTimer)/($animationTime*1.0)
+
+    if @fade_state == :in
+      color = Gosu::Color.new(255*(1-animationProgress),0,0,0)
+      Gosu.draw_rect(0, 0, self.width, self.height, color, $overlayZ)
+    elsif @fade_state == :out
+      color = Gosu::Color.new(255*(animationProgress),0,0,0)
+      Gosu.draw_rect(0, 0, self.width, self.height, color, $overlayZ)
+    end
+  end
+
   def create_tile(x, y, rotation, type)
     case type
     when "s"
@@ -346,7 +385,12 @@ class GearsGame < Gosu::Window
     init_backboard(level["backboard"])
     init_tiles(level["tiles"])
 
+    @next_level = level["next_level"]
+
     reset_mouse_box()
+
+    @fade_state = :in
+    $animationTimer = $animationTime
   end
 
   class Tile
@@ -462,6 +506,10 @@ class GearsGame < Gosu::Window
     end
 
     def refresh_sprite_index()
+    end
+
+    def condition_satisfied?()
+      return true
     end
   end
 
@@ -836,6 +884,10 @@ class GearsGame < Gosu::Window
       else
         @spriteIndex = @offIndex
       end
+    end
+
+    def condition_satisfied?()
+      return @isOn
     end
   end
 

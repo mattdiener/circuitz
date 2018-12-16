@@ -10,5 +10,6 @@
         {"type": "n", "rotation": 0}, {"type": "c", "rotation": 2}, {"type": "n", "rotation": 0},
         {"type": "s", "rotation": 3}, {"type": "n", "rotation": 0}, {"type": "n", "rotation": 0},
         {"type": "n", "rotation": 0}, {"type": "k", "rotation": 2}, {"type": "n", "rotation": 0}
-    ]
+    ],
+    "next_level": "test/level2"
 }

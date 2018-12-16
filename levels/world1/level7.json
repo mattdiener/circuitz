@@ -1,14 +1,16 @@
 {
-  "width": 5,
+  "width": 6,
   "height": 4,
   "backboard": [
     "n",
     "n",
     "s",
+    "s",
     "d",
     "d",
     "d",
     "d",
+    "s",
     "s",
     "d",
     "d",
@@ -16,10 +18,12 @@
     "d",
     "d",
     "s",
-    "n",
+    "d",
+    "d",
     "n",
     "d",
     "d",
+    "n",
     "n",
     "n"
   ],
@@ -37,12 +41,16 @@
       "rotation": 0
     },
     {
-      "type": "c",
-      "rotation": 2
+      "type": "l",
+      "rotation": 1
     },
     {
-      "type": "l",
-      "rotation": 2
+      "type": "s",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 3
     },
     {
       "type": "c",
@@ -57,12 +65,16 @@
       "rotation": 3
     },
     {
-      "type": "s",
-      "rotation": 3
+      "type": "c",
+      "rotation": 1
     },
     {
-      "type": "c",
-      "rotation": 2
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 1
     },
     {
       "type": "c",
@@ -82,7 +94,11 @@
     },
     {
       "type": "n",
-      "rotation": 0
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 3
     },
     {
       "type": "n",
@@ -95,6 +111,10 @@
     {
       "type": "n",
       "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 0
     },
     {
       "type": "n",

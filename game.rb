@@ -128,6 +128,10 @@ class GearsGame < Gosu::Window
           @tiles[tile_index_a].debug_rotate(1)
           $animationTimer = $animationTime
         end
+      when Gosu::KB_R
+        @backboard[tile_index_a] = @backboard[tile_index_a].create_next_backboard_type()
+      when Gosu::KB_T
+        @tiles[tile_index_a] = @tiles[tile_index_a].create_next_tile_type()
       end
     else
       #non-debug only
@@ -266,7 +270,7 @@ class GearsGame < Gosu::Window
       $mouseCanClick = true
     end
 
-    if(self.tile_exists?(tmpMouseBoxX,tmpMouseBoxY))
+    if((tmpMouseBoxX >= 0) and (tmpMouseBoxX < $tileCountW) and (tmpMouseBoxY >= 0) and (tmpMouseBoxY < $tileCountH))
       $debug_box_x = tmpMouseBoxX
       $debug_box_y = tmpMouseBoxY
     end
@@ -401,8 +405,6 @@ class GearsGame < Gosu::Window
   end
 
   def draw_mouse_box
-      
-
       outlineColor = $colorWhite
 
       if not $mouseCanClick
@@ -591,12 +593,12 @@ class GearsGame < Gosu::Window
       @yPrev = @y
 
       #normalize the rotations so we can have regular numbers for game logic
-      if @rotation == 4
-        @rotation = 0
+      while @rotation >= 4
+        @rotation -= 4
       end
 
-      if @rotation == -1
-        @rotation = 3
+      while @rotation <= -1
+        @rotation += 4
       end
 
       @rotationPrev = @rotation
@@ -639,11 +641,19 @@ class GearsGame < Gosu::Window
     def condition_satisfied?()
       return true
     end
+
+    def create_next_tile_type()
+      return NoTile.new(@x, @y, @rotation)
+    end
   end
 
   class NoTile < Tile
     def draw(animationStage)
       #noop
+    end
+
+    def create_next_tile_type()
+      return SourceTile.new(@x, @y, @rotation)
     end
   end
 
@@ -682,6 +692,10 @@ class GearsGame < Gosu::Window
       else
         @spriteIndex = @offIndex
       end
+    end
+
+    def create_next_tile_type()
+      return CornerTile.new(@x, @y, @rotation)
     end
   end
 
@@ -751,6 +765,10 @@ class GearsGame < Gosu::Window
         @spriteIndex = @offIndex
       end
     end
+
+    def create_next_tile_type()
+      return StraightTile.new(@x, @y, @rotation)
+    end
   end
 
   class StraightTile < Tile
@@ -805,6 +823,10 @@ class GearsGame < Gosu::Window
         @spriteIndex = @offIndex
       end
     end
+
+    def create_next_tile_type()
+      return OverUnderTile.new(@x, @y, @rotation)
+    end
   end
 
   class OverUnderTile < Tile
@@ -818,7 +840,6 @@ class GearsGame < Gosu::Window
       @onOverIndex = 9
       @onUnderIndex = 10
       @onIndex = 11
-
     end
     
     def reset_signal()
@@ -875,6 +896,10 @@ class GearsGame < Gosu::Window
         @spriteIndex = @offIndex
       end
     end
+
+    def create_next_tile_type()
+      return DoubleCornerTile.new(@x, @y, @rotation)
+    end
   end
 
   class DoubleCornerTile < Tile
@@ -888,7 +913,6 @@ class GearsGame < Gosu::Window
       @onAIndex = 13
       @onBIndex = 14
       @onIndex = 15
-
     end
     
     def reset_signal()
@@ -977,6 +1001,10 @@ class GearsGame < Gosu::Window
         @spriteIndex = @offIndex
       end
     end
+
+    def create_next_tile_type()
+      return SinkTile.new(@x, @y, @rotation)
+    end
   end
 
   class SinkTile < Tile
@@ -984,10 +1012,8 @@ class GearsGame < Gosu::Window
       super(x, y, rotation)
 
       @isOn = false
-
       @offIndex = 2
       @onIndex = 3
-
     end
     
     def reset_signal()
@@ -1016,6 +1042,10 @@ class GearsGame < Gosu::Window
 
     def condition_satisfied?()
       return @isOn
+    end
+
+    def create_next_tile_type()
+      return NoTile.new(@x, @y, @rotation)
     end
   end
 
@@ -1051,6 +1081,10 @@ class GearsGame < Gosu::Window
       Gosu.draw_rect( $innerX + (@x*$tileSize) - 1, $innerY + (@y*$tileSize) - 1, $tileSize + 3, 3, lineColor, $gridZ )
       Gosu.draw_rect( $innerX + (@x*$tileSize) - 1, $innerY + ((@y+1)*$tileSize) - 1, $tileSize + 3, 3, lineColor, $gridZ )
     end
+
+    def create_next_backboard_type()
+      return StaticBackboardSquare.new(@x, @y)
+    end
   end
 
   class StaticBackboardSquare < BackboardSquare
@@ -1065,6 +1099,10 @@ class GearsGame < Gosu::Window
     def color
       return $colorBrown
     end
+
+    def create_next_backboard_type()
+      return NoBackboardSquare.new(@x, @y)
+    end
   end
 
   class NoBackboardSquare < StaticBackboardSquare
@@ -1078,6 +1116,10 @@ class GearsGame < Gosu::Window
 
     def draw
       #noop
+    end
+
+    def create_next_backboard_type()
+      return BackboardSquare.new(@x, @y)
     end
   end
 end

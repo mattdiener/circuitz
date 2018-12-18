@@ -1,4 +1,3 @@
-#THIS GAME IS A HACK
 require 'gosu'
 require 'io/console'
 

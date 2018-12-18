@@ -2,7 +2,7 @@ require 'gosu'
 
 #CONSTS
 TILE_SOURCE_SIZE = 16
-TILE_SPRITES = *Gosu::Image.load_tiles("./puzzletiles.png", TILE_SOURCE_SIZE, TILE_SOURCE_SIZE, {retro: true})
+TILE_SPRITES = *Gosu::Image.load_tiles("./assets/puzzletiles.png", TILE_SOURCE_SIZE, TILE_SOURCE_SIZE, {retro: true})
 TILE_ROTATION_TIME = 16
 
 #TILE TYPES

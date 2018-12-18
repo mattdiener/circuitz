@@ -61,11 +61,11 @@ class CircuitzGame < Gosu::Window
 
       case command
       when "save"
-        save_current_level_as(args[0], false) if args[0]
+        @game_board.save_as(args[0], false) if args[0]
       when "save_hard"
-        save_current_level_as(args[0], true) if args[0]
+        @game_board.save_as(args[0], true) if args[0]
       when "load"
-        load_level(args[0]) if args[0]
+        @game_board.load_level(args[0]) if args[0]
       end
     rescue => e
       puts e

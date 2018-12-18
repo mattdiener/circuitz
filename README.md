@@ -2,7 +2,7 @@
 
 Circuitz is a puzzle game where the main objective is to power all of the game's sinks.
 
-[Gameplay Example]{docs/gameplay_example.gif}
+![]{./docs/gameplay_example.gif}
 
 ## Controls
 This game's controls are pretty simple:

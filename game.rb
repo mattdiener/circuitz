@@ -7,7 +7,7 @@ require_relative 'animation_manager'
 
 STDOUT.sync = true
 
-class GearsGame < Gosu::Window
+class CircuitzGame < Gosu::Window
   def initialize
     @screen_width = 640
     @screen_height = 480
@@ -201,6 +201,6 @@ class GearsGame < Gosu::Window
   end
 end
 
-$game = GearsGame.new()
+$game = CircuitzGame.new()
 $game.post_init()
 $game.show()

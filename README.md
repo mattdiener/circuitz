@@ -1,6 +1,6 @@
 # circuitz
 
-Circuitz is a puzzle game where the main objective is to power all of the game's sinks.
+circuitz is a puzzle game where the main objective is to power all of the game's sinks.
 
 ![](./docs/gameplay_example.gif)
 

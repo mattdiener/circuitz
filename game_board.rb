@@ -348,25 +348,47 @@ class GameBoard
 
     mouse_moved = false
 
-    if(tile_exists?(tmp_player_box_x    , tmp_player_box_y)     and
-       tile_exists?(tmp_player_box_x + 1, tmp_player_box_y)     and
-       tile_exists?(tmp_player_box_x    , tmp_player_box_y + 1) and
-       tile_exists?(tmp_player_box_x + 1, tmp_player_box_y + 1))
-      # --- --- --- --- --- --- --- --- --- --- --- --- #
-      @player_box_position = Vector2.new(tmp_player_box_x, tmp_player_box_y)
+    # we use the following priority for mouse selection:
+    # => 1) top left corner
+    # => 2) top right corner
+    # => 3) bottom left corner
+    # => 4) bottom right corner
+    if player_box_is_selectable?(tmp_player_box_x, tmp_player_box_y)
+      mouse_moved = true
+    elsif player_box_is_selectable?(tmp_player_box_x-1, tmp_player_box_y)
+      tmp_player_box_x -= 1
+      mouse_moved = true
+    elsif player_box_is_selectable?(tmp_player_box_x, tmp_player_box_y-1)
+      tmp_player_box_y -= 1
+      mouse_moved = true
+    elsif player_box_is_selectable?(tmp_player_box_x-1, tmp_player_box_y-1)
+      tmp_player_box_x -= 1
+      tmp_player_box_y -= 1
       mouse_moved = true
     end
 
-    # clear this bool if the mouse moved, so below we can reset to true
-    @mouse_can_click = false if mouse_moved 
+    if mouse_moved
+      @mouse_can_click = false  
+      @player_box_position = Vector2.new(tmp_player_box_x, tmp_player_box_y)
+    end
 
-    if(tile_can_rotate?(tmp_player_box_x    ,tmp_player_box_y)     and
-       tile_can_rotate?(tmp_player_box_x + 1,tmp_player_box_y)     and
-       tile_can_rotate?(tmp_player_box_x    ,tmp_player_box_y + 1) and
-       tile_can_rotate?(tmp_player_box_x + 1,tmp_player_box_y + 1))
-      # --- --- --- --- --- --- --- --- --- --- --- --- #
+    if player_box_can_rotate?(tmp_player_box_x, tmp_player_box_y)
       @mouse_can_click = true
     end
+  end
+
+  def player_box_is_selectable?(box_x, box_y)
+    return (tile_exists?(box_x    , box_y)     and
+            tile_exists?(box_x + 1, box_y)     and
+            tile_exists?(box_x    , box_y + 1) and
+            tile_exists?(box_x + 1, box_y + 1))
+  end
+
+  def player_box_can_rotate?(box_x, box_y)
+    return (tile_can_rotate?(box_x    , box_y)     and
+            tile_can_rotate?(box_x + 1, box_y)     and
+            tile_can_rotate?(box_x    , box_y + 1) and
+            tile_can_rotate?(box_x + 1, box_y + 1))
   end
 
   def update_debug_box(mouse_x, mouse_y)

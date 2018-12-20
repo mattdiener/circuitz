@@ -168,7 +168,7 @@ class Tile
   end
 
   def create_next_tile_type()
-    return NoTile.new(@x, @y, @rotation)
+    return NoTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -182,7 +182,7 @@ class NoTile < Tile
   end
 
   def create_next_tile_type()
-    return SourceTile.new(@x, @y, @rotation)
+    return SourceTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -228,7 +228,7 @@ class SourceTile < Tile
   end
 
   def create_next_tile_type()
-    return CornerTile.new(@x, @y, @rotation)
+    return CornerTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -304,7 +304,7 @@ class CornerTile < Tile
   end
 
   def create_next_tile_type()
-    return StraightTile.new(@x, @y, @rotation)
+    return StraightTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -366,7 +366,7 @@ class StraightTile < Tile
   end
 
   def create_next_tile_type()
-    return OverUnderTile.new(@x, @y, @rotation)
+    return OverUnderTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -443,7 +443,7 @@ class OverUnderTile < Tile
   end
 
   def create_next_tile_type()
-    return DoubleCornerTile.new(@x, @y, @rotation)
+    return DoubleCornerTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -552,7 +552,7 @@ class DoubleCornerTile < Tile
   end
 
   def create_next_tile_type()
-    return SinkTile.new(@x, @y, @rotation)
+    return SinkTile.new(@x, @y, @rotation, @game_board)
   end
 end
 
@@ -598,6 +598,6 @@ class SinkTile < Tile
   end
 
   def create_next_tile_type()
-    return NoTile.new(@x, @y, @rotation)
+    return NoTile.new(@x, @y, @rotation, @game_board)
   end
 end

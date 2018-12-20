@@ -228,11 +228,13 @@ class GameBoard
   end
 
   def handle_debug_next_backboard
-    @backboard[tile_index_a] = @backboard[tile_index_a].create_next_backboard_type()
+    idx = tile_index(@debug_box_positon.x,@debug_box_positon.y)
+    @backboard[idx] = @backboard[idx].create_next_backboard_type()
   end
 
   def handle_debug_next_tile
-    @tiles[tile_index_a] = @tiles[tile_index_a].create_next_tile_type()
+    idx = tile_index(@debug_box_positon.x,@debug_box_positon.y)
+    @tiles[idx] = @tiles[idx].create_next_tile_type()
   end
 
   def draw

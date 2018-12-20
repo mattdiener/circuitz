@@ -58,7 +58,7 @@ class BackboardSquare
   end
 
   def create_next_backboard_type()
-    return StaticBackboardSquare.new(@x, @y)
+    return StaticBackboardSquare.new(@x, @y, @game_board)
   end
 end
 
@@ -80,7 +80,7 @@ class StaticBackboardSquare < BackboardSquare
   end
 
   def create_next_backboard_type()
-    return NoBackboardSquare.new(@x, @y)
+    return NoBackboardSquare.new(@x, @y, @game_board)
   end
 end
 
@@ -102,6 +102,6 @@ class NoBackboardSquare < StaticBackboardSquare
   end
 
   def create_next_backboard_type()
-    return BackboardSquare.new(@x, @y)
+    return BackboardSquare.new(@x, @y, @game_board)
   end
 end

@@ -409,7 +409,7 @@ class GameBoard
       tmp_debug_box_y = -1
     end
 
-    if tile_exists?(tmp_debug_box_x, tmp_debug_box_y)
+    if tile_in_range?(tmp_debug_box_x, tmp_debug_box_y)
       @debug_box_positon = Vector2.new(tmp_debug_box_x, tmp_debug_box_y)
     end
   end

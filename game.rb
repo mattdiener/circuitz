@@ -122,13 +122,13 @@ class CircuitzGame < Gosu::Window
     when Gosu::KB_T
       @game_board.handle_debug_next_tile
     when Gosu::KB_I
-      debug_size_board(:up)
+      @game_board.debug_resize(:up)
     when Gosu::KB_J
-      debug_size_board(:left)
+      @game_board.debug_resize(:left)
     when Gosu::KB_K
-      debug_size_board(:down)
+      @game_board.debug_resize(:down)
     when Gosu::KB_L 
-      debug_size_board(:right)
+      @game_board.debug_resize(:right)
     end
   end
 

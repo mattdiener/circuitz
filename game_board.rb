@@ -459,7 +459,7 @@ class GameBoard
       end
     end
 
-    init_board(width_new, height_new)
+    set_dimensions(width_new, height_new)
 
     @tiles = tiles_new
     @backboard = backboard_new

@@ -1,0 +1,184 @@
+{
+  "width": 7,
+  "height": 5,
+  "backboard": [
+    "s",
+    "d",
+    "d",
+    "n",
+    "n",
+    "n",
+    "n",
+    "s",
+    "d",
+    "d",
+    "d",
+    "n",
+    "n",
+    "n",
+    "n",
+    "n",
+    "d",
+    "d",
+    "d",
+    "n",
+    "n",
+    "n",
+    "n",
+    "n",
+    "d",
+    "d",
+    "d",
+    "d",
+    "n",
+    "n",
+    "n",
+    "n",
+    "d",
+    "d",
+    "d"
+  ],
+  "tiles": [
+    {
+      "type": "s",
+      "rotation": 3
+    },
+    {
+      "type": "c",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "k",
+      "rotation": 3
+    },
+    {
+      "type": "c",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 2
+    },
+    {
+      "type": "n",
+      "rotation": 0
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    },
+    {
+      "type": "n",
+      "rotation": 3
+    },
+    {
+      "type": "n",
+      "rotation": 1
+    }
+  ],
+  "next_level": ""
+}

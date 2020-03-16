@@ -22,6 +22,7 @@ Debug mode is essentially a level editor. Here are some things that can be done:
 - **t** &mdash; cycles the highlighted grid space through different tile types
 - **i, j** &mdash; shrinks the board vertically, horizontally respecitvely
 - **k, l** &mdash; grows the board vertically, horizontally respecitvely
+- **q, e** &mdash; rotates the tile counter-clockwise, clockwise respectively
 
 ## Console Commands
 For now, console commands can be run through the shell that you use to launch the game. The commands that currently exist are:
